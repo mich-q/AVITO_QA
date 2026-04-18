@@ -2,10 +2,19 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0; url=allure-report/index.html">
     <title>Allure Example Report</title>
 </head>
 <body>
-    <p>Open <a href="allure-report/index.html">allure-report/index.html</a>.</p>
+    <h1>Allure Example</h1>
+    <p>
+        This repository does not store the generated <code>allure-report/</code> directory.
+        The file is kept as a lightweight example artifact confirming that Allure was configured
+        and report generation was used during the task.
+    </p>
+    <p>
+        To generate a local report:
+    </p>
+    <pre>pytest -v --alluredir=allure-results
+allure serve allure-results</pre>
 </body>
 </html>

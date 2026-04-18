@@ -6,7 +6,13 @@ import allure
 import pytest
 import requests
 
-from conftest import JSON_HEADERS, attach_json, attach_response, extract_item_id
+from conftest import (
+    JSON_HEADERS,
+    attach_json,
+    attach_response,
+    extract_item_id,
+    request_with_retries,
+)
 
 
 def has_documented_item_shape(data):
@@ -33,8 +39,8 @@ class TestCreateItemPositive:
 
         with allure.step("Отправить валидный POST /api/1/item"):
             attach_json("create_item_payload", payload)
-            response = requests.post(
-                f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
             )
             attach_response(response, "create_item_response")
 
@@ -61,8 +67,8 @@ class TestCreateItemPositive:
 
         with allure.step("Создать объявление валидным запросом"):
             attach_json("create_item_payload", payload)
-            response = requests.post(
-                f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
             )
             attach_response(response, "create_item_response")
 
@@ -121,7 +127,7 @@ class TestCreateItemPositive:
     @pytest.mark.positive
     @allure.title("POST /api/1/item: нулевая statistics должна приниматься")
     @allure.description(
-        "Фиксирует BUG-08, когда валидный payload с нулевыми счётчиками отклоняется."
+        "Фиксирует BUG-04, когда валидный payload с нулевыми счётчиками отклоняется."
     )
     def test_create_item_zero_statistics(self, base_url, seller_id):
         """Проверка нулевых значений в statistics."""
@@ -134,13 +140,13 @@ class TestCreateItemPositive:
 
         with allure.step("Отправить запрос с нулевыми значениями statistics"):
             attach_json("zero_statistics_payload", payload)
-            response = requests.post(
-                f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
             )
             attach_response(response, "zero_statistics_response")
 
         assert response.status_code == 200, (
-            f"BUG-08: Ожидался 200 для нулевой statistics, "
+            f"BUG-04: Ожидался 200 для нулевой statistics, "
             f"получен {response.status_code}. Подробнее в BUGS.md"
         )
 
@@ -208,8 +214,8 @@ class TestCreateItemNegative:
 
         with allure.step("Отправить запрос с отрицательной ценой"):
             attach_json("negative_price_payload", payload)
-            response = requests.post(
-                f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
             )
             attach_response(response, "negative_price_response")
 
@@ -245,6 +251,34 @@ class TestCreateItemNegative:
         assert response.status_code == 400
 
     @pytest.mark.negative
+    @allure.title(
+        "POST /api/1/item: должны приниматься только документированные имена полей"
+    )
+    @allure.description(
+        "Фиксирует BUG-05, когда сервис принимает sellerId и другие "
+        "недокументированные/регистрозависимые имена полей."
+    )
+    def test_create_item_undocumented_field_name(self, base_url, seller_id):
+        payload = {
+            "name": "Wrong field name",
+            "price": 1000,
+            "sellerId": seller_id,
+            "statistics": {"contacts": 1, "likes": 1, "viewCount": 1},
+        }
+
+        with allure.step("Отправить запрос с sellerId вместо sellerID"):
+            attach_json("undocumented_field_payload", payload)
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            )
+            attach_response(response, "undocumented_field_response")
+
+        assert response.status_code == 400, (
+            "BUG-05: Ожидался 400 для payload с недокументированным именем поля sellerId, "
+            f"получен {response.status_code}. Подробнее в BUGS.md"
+        )
+
+    @pytest.mark.negative
     @allure.title("POST /api/1/item: отрицательная statistics должна отклоняться")
     def test_create_item_negative_statistics(self, base_url, seller_id):
         """BUG-01: сервер принимает отрицательную statistics."""
@@ -257,8 +291,8 @@ class TestCreateItemNegative:
 
         with allure.step("Отправить запрос с отрицательными счётчиками"):
             attach_json("negative_statistics_payload", payload)
-            response = requests.post(
-                f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
             )
             attach_response(response, "negative_statistics_response")
 
@@ -268,17 +302,30 @@ class TestCreateItemNegative:
         )
 
     @pytest.mark.negative
+    @allure.title("POST /api/1/item: отрицательный sellerID должен отклоняться")
+    @allure.description(
+        "Фиксирует BUG-06, когда сервис принимает отрицательный sellerID."
+    )
     def test_create_item_negative_seller_id(self, base_url):
+        """BUG-06: сервер принимает отрицательный sellerID."""
         payload = {
             "name": "Котёнок",
             "price": 1000,
             "sellerID": -123456,
+            "statistics": {"contacts": 1, "likes": 1, "viewCount": 1},
         }
-        response = requests.post(
-            f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
-        )
 
-        assert response.status_code == 400
+        with allure.step("Отправить запрос с отрицательным sellerID"):
+            attach_json("negative_seller_id_payload", payload)
+            response = request_with_retries(
+                "post", f"{base_url}/api/1/item", json=payload, headers=JSON_HEADERS
+            )
+            attach_response(response, "negative_seller_id_response")
+
+        assert response.status_code == 400, (
+            f"BUG-06: Ожидался 400 для отрицательного sellerID, "
+            f"получен {response.status_code}. Подробнее в BUGS.md"
+        )
 
 
 class TestCreateItemCornerCases:

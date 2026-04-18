@@ -14,6 +14,8 @@
 
 ```text
 .
+|-- .gitignore
+|-- README.md
 |-- conftest.py
 |-- pytest.ini
 |-- pyproject.toml
@@ -26,9 +28,10 @@
 |-- TESTCASES.md
 |-- BUGS.md
 |-- allure-example.html
-|-- allure-report/
 `-- task1.md
 ```
+
+Локально после запусков могут появляться служебные директории `.pytest_cache/`, `.ruff_cache/`, `__pycache__/`, `allure-results/`. Они не считаются частью исходников и исключены через `.gitignore`.
 
 ## Установка
 
@@ -71,7 +74,7 @@ allure serve allure-results
 - В проекте подключён `allure-pytest`.
 - Для ключевых сценариев добавлены `title`, `description`, `step` и вложения request/response.
 - Папка `allure-results` добавлена в `.gitignore`, чтобы не хранить сырые результаты в репозитории.
-- В репозиторий приложен пример сгенерированного отчёта: [allure-example.html](allure-example.html) и папка `allure-report/`.
+- В репозиторий приложен пример артефакта отчёта: [allure-example.html](allure-example.html).
 
 ## Линтинг
 
@@ -83,11 +86,10 @@ python -m ruff format .
 
 ## Текущее состояние
 
-- В проекте задокументировано `8` API Bugs в [BUGS.md](BUGS.md).
-- Текущий результат полного прогона: `61 passed, 6 failed`.
+- В проекте задокументировано `6` подтверждённых API bugs в [BUGS.md](BUGS.md).
+- Текущий результат полного прогона: `62 passed, 6 failed`.
 - Эти `6 failed` ожидаемы: они фиксируют реальные дефекты API, описанные в [BUGS.md](BUGS.md).
-- Количество Bugs и количество упавших тестов не совпадает `1:1`: часть дефектов пересекается, а часть проявляется нестабильно.
-- Падающие тесты не являются случайными: они воспроизводят реальные product Bugs.
+- Падающие тесты не являются случайными: они воспроизводят реальные product bugs.
 
 ## Примечания
 

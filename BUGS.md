@@ -2,15 +2,15 @@
 
 **Service:** `https://qa-internship.avito.com`
 
-**Актуальный status полного прогона на 10 апреля 2026:** `61 passed, 6 failed`
+**Актуальный статус полного прогона на 18 апреля 2026:** `62 passed, 6 failed`
 
-Этим падениям соответствуют следующие Bugs:
-- `BUG-01` принимается отрицательная statistics
-- `BUG-02` принимается отрицательный price
+Этим падениям соответствуют следующие bugs:
+- `BUG-01` принимается отрицательная `statistics`
+- `BUG-02` принимается отрицательный `price`
 - `BUG-03` format response у `POST /api/1/item` не соответствует документации
-- `BUG-04` `GET /api/1/item/:id` возвращает массив вместо объекта
-- `BUG-05` `GET /api/1/statistic/:id` возвращает массив вместо объекта
-- `BUG-08` валидный create request с нулевой statistics отклоняется с `400`
+- `BUG-04` валидный create request с нулевой `statistics` отклоняется с `400`
+- `BUG-05` API принимает недокументированные имена полей и вариации регистра в create payload
+- `BUG-06` API принимает отрицательный `sellerID`
 
 ---
 
@@ -18,7 +18,7 @@
 
 **Priority:** P1 - High
 
-**Краткое описание:**
+**Краткое описание:**  
 API принимает отрицательные значения в полях `likes`, `viewCount` и `contacts` и возвращает `200 OK`.
 
 **Шаги воспроизведения:**
@@ -37,10 +37,10 @@ API принимает отрицательные значения в полях
 ```
 2. Проверить `status code` и body ответа.
 
-**Фактический результат:**
+**Фактический результат:**  
 `200 OK` - item создаётся с отрицательной statistics.
 
-**Ожидаемый результат:**
+**Ожидаемый результат:**  
 `400 Bad Request` - отрицательные значения statistics должны отклоняться валидацией.
 
 **Severity:** High
@@ -51,7 +51,7 @@ API принимает отрицательные значения в полях
 - Client: `pytest` + `requests`
 - Дата прогона: `2026-04-10`
 
-**Тест, фиксирующий дефект:**
+**Тест, фиксирующий дефект:**  
 `test_create_item.py::TestCreateItemNegative::test_create_item_negative_statistics`
 
 ---
@@ -60,16 +60,16 @@ API принимает отрицательные значения в полях
 
 **Priority:** P1 - High
 
-**Краткое описание:**
+**Краткое описание:**  
 API принимает `price < 0` и возвращает `200 OK`.
 
 **Шаги воспроизведения:**
 1. Отправить `POST /api/1/item` с `"price": -500`.
 
-**Фактический результат:**
+**Фактический результат:**  
 `200 OK` - item создаётся с `price = -500`.
 
-**Ожидаемый результат:**
+**Ожидаемый результат:**  
 `400 Bad Request` - отрицательный `price` недопустим.
 
 **Severity:** High
@@ -80,7 +80,7 @@ API принимает `price < 0` и возвращает `200 OK`.
 - Client: `pytest` + `requests`
 - Дата прогона: `2026-04-10`
 
-**Тест, фиксирующий дефект:**
+**Тест, фиксирующий дефект:**  
 `test_create_item.py::TestCreateItemNegative::test_create_item_negative_price`
 
 ---
@@ -89,8 +89,8 @@ API принимает `price < 0` и возвращает `200 OK`.
 
 **Priority:** P2 - Medium
 
-**Краткое описание:**
-Согласно контракту, успешный create response должен возвращать полный объект item с полями `id`, `sellerId`, `name`, `price`, `statistics`, `createdAt`.
+**Краткое описание:**  
+Согласно контракту, успешный create response должен возвращать полный объект item с полями `id`, `sellerId`, `name`, `price`, `statistics`, `createdAt`.  
 Фактически API возвращает только строку в поле `status`.
 
 **Шаги воспроизведения:**
@@ -114,7 +114,7 @@ API принимает `price < 0` и возвращает `200 OK`.
 }
 ```
 
-**Влияние:**
+**Влияние:**  
 Клиентский код не может получить `id` напрямую и вынужден извлекать его из строки `status`, что нарушает API contract.
 
 **Severity:** Medium
@@ -125,148 +125,17 @@ API принимает `price < 0` и возвращает `200 OK`.
 - Client: `pytest` + `requests`
 - Дата прогона: `2026-04-10`
 
-**Тест, фиксирующий дефект:**
+**Тест, фиксирующий дефект:**  
 `test_create_item.py::TestCreateItemPositive::test_create_item_response_format`
 
 ---
 
-## BUG-04: GET /api/1/item/:id возвращает массив вместо одного объекта
+## BUG-04: POST /api/1/item отклоняет валидный payload с нулевой statistics
 
 **Priority:** P2 - Medium
 
-**Краткое описание:**
-`GET /api/1/item/:id` должен возвращать один item по `id`, но фактически возвращает массив из одного элемента.
-
-**Шаги воспроизведения:**
-1. Создать item и получить его `id`.
-2. Отправить `GET /api/1/item/{id}`.
-3. Проверить тип response.
-
-**Фактический результат:**
-```json
-[{ "id": "...", "name": "...", "price": 1000 }]
-```
-
-**Ожидаемый результат:**
-```json
-{ "id": "...", "name": "...", "price": 1000 }
-```
-
-**Severity:** Medium
-
-**Окружение:**
-- Host: `https://qa-internship.avito.com`
-- Endpoint: `GET /api/1/item/:id`
-- Client: `pytest` + `requests`
-- Дата прогона: `2026-04-10`
-
-**Тест, фиксирующий дефект:**
-`test_get_item.py::TestGetItemPositive::test_get_item_response_is_object`
-
----
-
-## BUG-05: GET /api/1/statistic/:id возвращает массив вместо одного объекта
-
-**Priority:** P2 - Medium
-
-**Краткое описание:**
-`GET /api/1/statistic/:id` возвращает `[{...}]` вместо `{...}`.
-
-**Шаги воспроизведения:**
-1. Создать item и получить его `id`.
-2. Отправить `GET /api/1/statistic/{id}`.
-3. Проверить тип response.
-
-**Фактический результат:**
-```json
-[{ "likes": 5, "viewCount": 10, "contacts": 2 }]
-```
-
-**Ожидаемый результат:**
-```json
-{ "likes": 5, "viewCount": 10, "contacts": 2 }
-```
-
-**Severity:** Medium
-
-**Окружение:**
-- Host: `https://qa-internship.avito.com`
-- Endpoint: `GET /api/1/statistic/:id`
-- Client: `pytest` + `requests`
-- Дата прогона: `2026-04-10`
-
-**Тест, фиксирующий дефект:**
-`test_get_statistic.py::TestGetStatisticV1Positive::test_get_statistic_v1_response_is_object`
-
----
-
-## BUG-06: GET /api/1/:sellerID/item возвращает 404 для продавца без объявлений
-
-**Priority:** P2 - Medium
-
-**Краткое описание:**
-Для продавца без объявлений API возвращает `404 Not Found` вместо пустого списка.
-
-**Шаги воспроизведения:**
-1. Использовать новый уникальный `sellerID`.
-2. Отправить `GET /api/1/{sellerID}/item`.
-
-**Фактический результат:**
-`404 Not Found`
-
-**Ожидаемый результат:**
-`200 OK` с `[]`
-
-**Severity:** Medium
-
-**Окружение:**
-- Host: `https://qa-internship.avito.com`
-- Endpoint: `GET /api/1/:sellerID/item`
-- Client: `pytest` + `requests`
-- Дата прогона: `2026-04-10`
-
-**Тест, фиксирующий дефект:**
-`test_get_seller_items.py::TestGetSellerItemsPositive::test_get_seller_items_empty_for_new_seller`
-
----
-
-## BUG-07: GET /api/2/statistic/:id может возвращать 100 Continue
-
-**Priority:** P1 - High
-
-**Краткое описание:**
-`/api/2/statistic/:id` может возвращать HTTP `100 Continue` вместо финального `200 OK`.
-
-**Шаги воспроизведения:**
-1. Создать item и получить его `id`.
-2. Отправить `GET /api/2/statistic/{id}`.
-3. Проверить `status code`.
-
-**Фактический результат:**
-`100 Continue`
-
-**Ожидаемый результат:**
-`200 OK`
-
-**Severity:** High
-
-**Окружение:**
-- Host: `https://qa-internship.avito.com`
-- Endpoint: `GET /api/2/statistic/:id`
-- Client: `pytest` + `requests`
-- Дата прогона: `2026-04-10`
-
-**Тест, фиксирующий дефект:**
-`test_get_statistic.py::TestGetStatisticV2Positive::test_get_statistic_v2_returns_200`
-
----
-
-## BUG-08: POST /api/1/item отклоняет валидный payload с нулевой statistics
-
-**Priority:** P2 - Medium
-
-**Краткое описание:**
-Валидный create request с `statistics.contacts = 0`, `statistics.likes = 0` и `statistics.viewCount = 0` отклоняется с `400 Bad Request`.
+**Краткое описание:**  
+Валидный create request с `statistics.contacts = 0`, `statistics.likes = 0` и `statistics.viewCount = 0` отклоняется с `400 Bad Request`.  
 Нулевые значения для счётчиков валидны и должны приниматься.
 
 **Шаги воспроизведения:**
@@ -285,13 +154,13 @@ API принимает `price < 0` и возвращает `200 OK`.
 ```
 2. Проверить `status code`.
 
-**Фактический результат:**
+**Фактический результат:**  
 `400 Bad Request`
 
-**Ожидаемый результат:**
+**Ожидаемый результат:**  
 `200 OK` - item должен успешно создаться.
 
-**Влияние:**
+**Влияние:**  
 API отклоняет распространённый валидный edge case и ломает сценарии, где начальная statistics должна быть пустой.
 
 **Severity:** Medium
@@ -302,6 +171,97 @@ API отклоняет распространённый валидный edge ca
 - Client: `pytest` + `requests`
 - Дата прогона: `2026-04-10`
 
-**Тесты, фиксирующие дефект:**
-`test_create_item.py::TestCreateItemPositive::test_create_item_response_format`
+**Тест, фиксирующий дефект:**  
 `test_create_item.py::TestCreateItemPositive::test_create_item_zero_statistics`
+
+---
+
+## BUG-05: POST /api/1/item принимает недокументированные имена полей и вариации регистра
+
+**Priority:** P2 - Medium
+
+**Краткое описание:**  
+Сервис принимает payload с полем `sellerId` вместо документированного `sellerID` и успешно создаёт объявление.  
+В исследовательских прогонах также подтвердилось, что API принимает и другие недокументированные имена и вариации регистра: `sellerid`, `SellerID`, `NAME`, `Price`, `STATISTICS`, `LIKES`.
+
+**Шаги воспроизведения:**
+1. Отправить `POST /api/1/item` с body:
+```json
+{
+  "sellerId": 418955,
+  "name": "Wrong key",
+  "price": 1234,
+  "statistics": {
+    "contacts": 1,
+    "likes": 1,
+    "viewCount": 1
+  }
+}
+```
+2. Проверить `status code` и созданное объявление.
+
+**Фактический результат:**  
+`200 OK` - объявление успешно создаётся, хотя по контракту должны приниматься только документированные имена полей в точном написании.
+
+**Ожидаемый результат:**  
+`400 Bad Request` - API должно принимать только документированные имена полей из контракта: `sellerID`, `name`, `price`, `statistics`, `likes`, `viewCount`, `contacts`.
+
+**Влияние:**  
+Контракт валидации становится размытым: клиент может случайно отправлять неверные имена полей и не замечать ошибок интеграции.
+
+**Severity:** Medium
+
+**Окружение:**
+- Host: `https://qa-internship.avito.com`
+- Endpoint: `POST /api/1/item`
+- Client: `pytest` + `requests`
+- Дата прогона: `2026-04-17`
+
+**Тест, фиксирующий дефект:**  
+`test_create_item.py::TestCreateItemNegative::test_create_item_undocumented_field_name`
+
+---
+
+## BUG-06: POST /api/1/item принимает отрицательный sellerID
+
+**Priority:** P2 - Medium
+
+**Краткое описание:**  
+Сервис принимает отрицательный `sellerID` и успешно создаёт объявление.  
+С точки зрения здравого смысла и бизнес-логики идентификатор продавца не должен быть отрицательным.
+
+**Шаги воспроизведения:**
+1. Отправить `POST /api/1/item` с body:
+```json
+{
+  "sellerID": -123456,
+  "name": "Negative seller",
+  "price": 1000,
+  "statistics": {
+    "contacts": 1,
+    "likes": 1,
+    "viewCount": 1
+  }
+}
+```
+2. Проверить `status code` и ответ сервиса.
+
+**Фактический результат:**  
+`200 OK` - объявление успешно создаётся с отрицательным `sellerID`.
+
+**Ожидаемый результат:**  
+`400 Bad Request` - API должно отклонять отрицательные идентификаторы продавца как невалидные данные.
+
+**Влияние:**  
+В систему могут попадать объявления с некорректными идентификаторами продавца, что размывает валидацию данных и повышает риск ошибок интеграции.
+
+**Severity:** Medium
+
+**Окружение:**
+- Host: `https://qa-internship.avito.com`
+- Endpoint: `POST /api/1/item`
+- Client: `pytest` + `requests`
+- Дата прогона: `2026-04-18`
+
+**Тест, фиксирующий дефект:**  
+`test_create_item.py::TestCreateItemNegative::test_create_item_negative_seller_id`

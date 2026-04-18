@@ -90,11 +90,10 @@ class TestGetSellerItemsPositive:
             )
 
         assert response.status_code == 200, (
-            f"BUG-06: Ожидался 200 с пустым массивом, получен {response.status_code}. "
-            f"Подробнее в BUGS.md"
+            f"Ожидался 200 с пустым массивом, получен {response.status_code}: {response.text}"
         )
         assert response.json() == [], (
-            f"BUG-06: Ожидался пустой массив [], получен: {response.json()}"
+            f"Ожидался пустой массив [], получен: {response.json()}"
         )
 
 

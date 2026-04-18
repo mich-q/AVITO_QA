@@ -31,9 +31,9 @@ class TestGetStatisticV1Positive:
 
     @pytest.mark.positive
     @allure.title(
-        "GET /api/1/statistic/{id}: сервис должен возвращать объект statistics"
+        "GET /api/1/statistic/{id}: сервис должен возвращать массив statistics"
     )
-    def test_get_statistic_v1_response_is_object(self, base_url, created_item):
+    def test_get_statistic_v1_response_is_list(self, base_url, created_item):
         item_id = created_item["item_id"]
 
         with allure.step("Запросить statistics для существующего объявления"):
@@ -43,10 +43,10 @@ class TestGetStatisticV1Positive:
         assert response.status_code == 200
 
         data = response.json()
-        assert isinstance(data, dict), (
-            f"BUG-05: Ожидался объект dict, получен {type(data).__name__}.\n"
-            f"API возвращает массив вместо одного объекта statistics. Подробнее в BUGS.md"
+        assert isinstance(data, list), (
+            f"Ожидался массив list, получен {type(data).__name__}: {data}"
         )
+        assert len(data) >= 1, "Ожидался непустой массив statistics"
 
     @pytest.mark.positive
     def test_get_statistic_v1_has_required_fields(self, base_url, created_item):
@@ -112,8 +112,7 @@ class TestGetStatisticV2Positive:
         )
 
         assert response.status_code == 200, (
-            f"BUG-07: Ожидался 200, получен {response.status_code}.\n"
-            f"Возможно, сервер возвращает 100 Continue. Подробнее в BUGS.md"
+            f"Ожидался 200, получен {response.status_code}: {response.text}"
         )
 
     @pytest.mark.positive

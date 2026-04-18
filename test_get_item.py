@@ -33,8 +33,8 @@ class TestGetItemPositive:
             assert field in item, f"Поле '{field}' отсутствует в ответе: {item}"
 
     @pytest.mark.positive
-    @allure.title("GET /api/1/item/{id}: сервис должен возвращать объект объявления")
-    def test_get_item_response_is_object(self, base_url, created_item):
+    @allure.title("GET /api/1/item/{id}: сервис должен возвращать массив объявлений")
+    def test_get_item_response_is_list(self, base_url, created_item):
         item_id = created_item["item_id"]
 
         with allure.step("Запросить объявление по идентификатору"):
@@ -42,10 +42,10 @@ class TestGetItemPositive:
         assert response.status_code == 200
 
         data = response.json()
-        assert isinstance(data, dict), (
-            f"BUG-04: Ожидался объект dict, получен {type(data).__name__}.\n"
-            f"API возвращает массив вместо одного объявления. Подробнее в BUGS.md"
+        assert isinstance(data, list), (
+            f"Ожидался массив list, получен {type(data).__name__}: {data}"
         )
+        assert len(data) >= 1, "Ожидался непустой массив с объявлением"
 
     @pytest.mark.positive
     def test_get_item_data_matches_created(self, base_url, created_item):
