@@ -1,0 +1,14 @@
+.git/
+.github/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+.venv/
+venv/
+allure-results/
+allure-report/
+reports/
+.idea/
+.vscode/
+*.pyc
+*.pyo
