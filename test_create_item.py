@@ -56,6 +56,10 @@ class TestCreateItemPositive:
     @allure.description(
         "Фиксирует BUG-03, когда сервис возвращает status-строку вместо полного объекта объявления."
     )
+    @pytest.mark.xfail(
+        reason="BUG-03: POST response не соответствует documented contract",
+        strict=True,
+    )
     def test_create_item_response_format(self, base_url, seller_id):
         """Проверка формата response при создании объявления."""
         payload = {
@@ -128,6 +132,10 @@ class TestCreateItemPositive:
     @allure.title("POST /api/1/item: нулевая statistics должна приниматься")
     @allure.description(
         "Фиксирует BUG-04, когда валидный payload с нулевыми счётчиками отклоняется."
+    )
+    @pytest.mark.xfail(
+        reason="BUG-04: валидный payload с нулевой statistics отклоняется",
+        strict=True,
     )
     def test_create_item_zero_statistics(self, base_url, seller_id):
         """Проверка нулевых значений в statistics."""
@@ -203,6 +211,10 @@ class TestCreateItemNegative:
 
     @pytest.mark.negative
     @allure.title("POST /api/1/item: отрицательная цена должна отклоняться")
+    @pytest.mark.xfail(
+        reason="BUG-02: API принимает отрицательный price",
+        strict=True,
+    )
     def test_create_item_negative_price(self, base_url, seller_id):
         """BUG-02: сервер принимает отрицательный price."""
         payload = {
@@ -258,6 +270,10 @@ class TestCreateItemNegative:
         "Фиксирует BUG-05, когда сервис принимает sellerId и другие "
         "недокументированные/регистрозависимые имена полей."
     )
+    @pytest.mark.xfail(
+        reason="BUG-05: API принимает недокументированные имена полей",
+        strict=True,
+    )
     def test_create_item_undocumented_field_name(self, base_url, seller_id):
         payload = {
             "name": "Wrong field name",
@@ -280,6 +296,10 @@ class TestCreateItemNegative:
 
     @pytest.mark.negative
     @allure.title("POST /api/1/item: отрицательная statistics должна отклоняться")
+    @pytest.mark.xfail(
+        reason="BUG-01: API принимает отрицательную statistics",
+        strict=True,
+    )
     def test_create_item_negative_statistics(self, base_url, seller_id):
         """BUG-01: сервер принимает отрицательную statistics."""
         payload = {
@@ -305,6 +325,10 @@ class TestCreateItemNegative:
     @allure.title("POST /api/1/item: отрицательный sellerID должен отклоняться")
     @allure.description(
         "Фиксирует BUG-06, когда сервис принимает отрицательный sellerID."
+    )
+    @pytest.mark.xfail(
+        reason="BUG-06: API принимает отрицательный sellerID",
+        strict=True,
     )
     def test_create_item_negative_seller_id(self, base_url):
         """BUG-06: сервер принимает отрицательный sellerID."""
