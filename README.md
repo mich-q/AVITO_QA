@@ -1,3 +1,5 @@
+![CI](https://github.com/mich-q/AVITO_QA/actions/workflows/ci.yml/badge.svg)
+
 # Avito QA Internship - API Tests
 
 Набор API-тестов для `https://qa-internship.avito.com`, написанный на `pytest` и `requests`.
