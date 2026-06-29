@@ -15,6 +15,12 @@
 ```text
 .
 |-- .gitignore
+|-- .dockerignore
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
+|-- Dockerfile
+|-- DOCKER.md
 |-- README.md
 |-- conftest.py
 |-- pytest.ini
@@ -27,6 +33,8 @@
 |-- test_e2e.py
 |-- TESTCASES.md
 |-- BUGS.md
+|-- OBSERVATIONS.md
+|-- PROJECT_DEFENSE.md
 |-- allure-example.html
 `-- task1.md
 ```
